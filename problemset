@@ -1,0 +1,237 @@
+init Schema:
+	two tables
+		beverage-branches
+			beverage String
+			branch String
+		beverage-consumers
+			beverage String
+			consumer_count int
+
+			create table from textfile;
+				create table bevbranch(beverage String, branch String)row format delimited fields terminated by ',' stored as textfile;
+			load data by file:
+				load data inpath '/user/wk/projectone/Counsumers.txt' overwrite into table stats;
+
+	add ERD
+
+Problem Scenario 1
+What is the total number of consumers for Branch1?
+
+	Solution:
+		hive> select b.branch, sum(c.consumers) from branch b left join consumers c on (b.drink = c.drink) group by (b.branch) having (b.branch="Branch1");
+
+		Answer: Branch1 1115974
+
+What is the number of consumers for the Branch2?
+	Solution
+		hive> select b.branch, sum(c.consumers) from branch b left join consumers c on (b.drink = c.drink) group by (b.branch) having (b.branch="Branch2");
+
+		Answer: Branch2 5099141
+
+
+Problem Scenario 2
+What is the most consumed beverage on Branch1
+
+	Solution:
+		hive> select b.drink, sum(c.consumers) as totalcount from bevbranch b left join consumers c on (b.drink = c.drink and b.branch = "Branch1") group by (b.drink) order by totalcount desc limit 1;
+
+		Answer: Special_cappuccino      108163
+
+What is the least consumed beverage on Branch2
+
+	Solution
+		hive> select b.beverage, sum(s.order_count) as totalcount from bevbranch b left join stats s on (b.beverage = s.beverage and b.branch = "Branch2") group by (b.beverage) order by totalcount limit 10;
+
+		Answer: Cold_MOCHA      47524
+
+
+
+Problem Scenario 3
+What are the beverages available on Branch10, Branch8, and Branch1?
+
+	Solution:
+		hive> select distinct beverage from bevbranch where (branch="Branch10" or branch="Branch8" or branch="Branch1");
+
+		Answer:
+			Cold_Coffee
+			Cold_LATTE
+			Cold_Lite
+			Cold_cappuccino
+			Double_Coffee
+			Double_Espresso
+			Double_LATTE
+			Double_MOCHA
+			Double_cappuccino
+			ICY_Coffee
+			ICY_Espresso
+			ICY_Lite
+			ICY_MOCHA
+			ICY_cappuccino
+			LARGE_Coffee
+			LARGE_Espresso
+			LARGE_MOCHA
+			LARGE_cappuccino
+			MED_Coffee
+			MED_Espresso
+			MED_LATTE
+			MED_MOCHA
+			MED_cappuccino
+			Mild_Coffee
+			Mild_Espresso
+			Mild_LATTE
+			Mild_Lite
+			Mild_cappuccino
+			SMALL_Espresso
+			SMALL_LATTE
+			SMALL_Lite
+			SMALL_MOCHA
+			Special_Coffee
+			Special_Espresso
+			Special_LATTE
+			Special_Lite
+			Special_MOCHA
+			Special_cappuccino
+			Triple_Coffee
+			Triple_Espresso
+			Triple_LATTE
+			Triple_Lite
+			Triple_MOCHA
+			Triple_cappuccino
+
+what are the common beverages available in Branch4,Branch7?
+	Solution:
+		hive> create view branch4beverages(beverage, branch) as select * from bevbranch where branch="Branch4";
+			>60 rows
+		hive> create view branch7beverages(beverage, branch) as select * from bevbranch where branch="Branch7";
+			>100 rows
+
+		hive> select s.beverage, f.branch, s.branch from branch4beverages s inner join branch7beverages f on (f.beverage = s.beverage) group by s.beverage, s.branch, f.branch;
+			>51 rows
+
+	Answer:
+		Cold_Coffee     Branch7 Branch4
+		Cold_Espresso   Branch7 Branch4
+		Cold_LATTE      Branch7 Branch4
+		Cold_Lite       Branch7 Branch4
+		Cold_MOCHA      Branch7 Branch4
+		Cold_cappuccino Branch7 Branch4
+		Double_Coffee   Branch7 Branch4
+		Double_Espresso Branch7 Branch4
+		Double_Lite     Branch7 Branch4
+		Double_MOCHA    Branch7 Branch4
+		Double_cappuccino       Branch7 Branch4
+		ICY_Coffee      Branch7 Branch4
+		ICY_LATTE       Branch7 Branch4
+		ICY_Lite        Branch7 Branch4
+		ICY_MOCHA       Branch7 Branch4
+		ICY_cappuccino  Branch7 Branch4
+		LARGE_Coffee    Branch7 Branch4
+		LARGE_Espresso  Branch7 Branch4
+		LARGE_LATTE     Branch7 Branch4
+		LARGE_Lite      Branch7 Branch4
+		LARGE_MOCHA     Branch7 Branch4
+		LARGE_cappuccino        Branch7 Branch4
+		MED_Coffee      Branch7 Branch4
+		MED_Espresso    Branch7 Branch4
+		MED_Lite        Branch7 Branch4
+		MED_MOCHA       Branch7 Branch4
+		MED_cappuccino  Branch7 Branch4
+		Mild_Coffee     Branch7 Branch4
+		Mild_Espresso   Branch7 Branch4
+		Mild_LATTE      Branch7 Branch4
+		Mild_Lite       Branch7 Branch4
+		Mild_MOCHA      Branch7 Branch4
+		Mild_cappuccino Branch7 Branch4
+
+Problem Scenario 4
+create a partition,index,View for the scenario3.
+
+	Solution:
+		partition:
+			set hive.exec.dynamic.partition.mode=nonstrict;
+			create table bevbranch(beverage String) partitioned by (branch String) location '/user/wk/projectone/scenario3_part';
+			load data inpath '/user/wk/projectone/Bevs.txt' overwrite into table bevbranchpartition(branch);
+
+
+		index:
+			hive> create index s4 on table bevbranch (branch) as 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler' with deferred rebuild;
+		view:
+			hive> create view bevbranch010810 as select distinct beverage from bevbranch where (branch="Branch10" or branch="Branch8" or branch="Branch1");
+			hive> select * from bevbranch010810
+
+
+Problem Scenario 5
+Alter the table properties to add "note","comment"
+
+	Solution:
+		note:
+			hive> alter table stats set tblproperties ('note'='shows sum of orders on a certain beverage');
+			hive> alter table bevbranch set tblproperties ('note'='beverages and the branches they are available in');
+		comment:
+			hive> alter table bevbranch set tblproperties ('comment'='vague data points, good luck deciphering');
+			hive> alter table stats set tblproperties ('comment'='good data, lets use this for production');
+
+			Answer:
+				hive> show tblproperties bevbranch;                                                 OK
+
+	        comment vague data points, good luck deciphering
+					last_modified_by        wk
+					last_modified_time      1620891841
+					note    beverages and the branches they are available in
+						numFiles        1
+	        numRows 0
+	        rawDataSize     0
+	        totalSize       12998
+	     		transient_lastDdlTime   1620891841
+
+				hive> show tblproperties stats;
+					COLUMN_STATS_ACCURATE   {"BASIC_STATS":"true"}
+					comment good data, lets use this for production
+					last_modified_by        wk
+					last_modified_time      1620891871
+					note    shows sum of orders on a certain beverage
+					numFiles        0
+					numRows 0
+					rawDataSize     0
+					totalSize       0
+					transient_lastDdlTime   1620891871
+
+
+Problem Scenario 6
+Remove the row 5 from the output of Scenario 1
+	Solution:
+		//Performed not on Scenario 1
+		//view created for this scenario
+		s6 table:
+			Special_Lite    Branch6
+			Double_cappuccino       Branch5
+			SMALL_Coffee    Branch7
+			LARGE_Espresso  Branch3
+			Triple_Lite     Branch8 				<-target
+			MED_LATTE       Branch6
+			ICY_cappuccino  Branch5
+			Cold_Espresso   Branch7
+			Mild_cappuccino Branch3
+			Special_cappuccino      Branch8
+
+
+		hive> insert overwrite table s6 (select beverage, branch from (select *, row_number() over() as row_number from s6) as serialized_s6 where row_number != 5);
+
+		Result:
+			Special_Lite    Branch6
+			Double_cappuccino       Branch5
+			SMALL_Coffee    Branch7
+			LARGE_Espresso  Branch3					<-old 4th
+			MED_LATTE       Branch6					<-old 6th
+			ICY_cappuccino  Branch5
+			Cold_Espresso   Branch7
+			Mild_cappuccino Branch3
+			Special_cappuccino      Branch8
+
+
+
+Technology to use
+1)Hive and HDFS In UBuntu.
+
+2)How to present the project
+Use the PPT presentation with screenshot of output attached along with problem senario described.
