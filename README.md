@@ -13,20 +13,20 @@ Here goes your awesome project description!
 ## Features
 
 List of features ready and TODOs for future development
-###Problem Scenario 1
+### Problem Scenario 1
 * What is the total number of consumers for Branch1?
 * What is the number of consumers for the Branch2?
-###Problem Scenario 2
+### Problem Scenario 2
 * What is the most consumed beverage on Branch1?
 * What is the least consumed beverage on Branch2?
-###Problem Scenario 3
+### Problem Scenario 3
 * What are the beverages available on Branch10, Branch8, and Branch1?
 * what are the common beverages available in Branch4,Branch7?
-###Problem Scenario 4
+### Problem Scenario 4
 * create a partition,index,View for the scenario3.
-###Problem Scenario 5
+### Problem Scenario 5
 * Alter the table properties to add "note","comment"
-###Problem Scenario 6
+### Problem Scenario 6
 * Remove the row 5 from a table
 
 To-do list:
@@ -39,14 +39,16 @@ To-do list:
    git clone https://github.com/almondWilde/project-one-scripts
    
    #add the datafiles to hdfs
-   $hdfs dfs -put Bevs.txt ConsumerCount.txt /user/<hdfs username>/projectone
+   project-one-scripts$ hdfs dfs -put Bevs.txt ConsumerCount.txt /user/<hdfs username>/projectone
    
    #loadind the files into hive schema
-   $hive -f setup.sql
+   project-one-scripts$ hive -f setup.sql
    ```
 
 ## Usage
 Solve the problem scenarios by running the script:
-```$hive -f master.sql```
+```
+project-one-scripts$ hive -f master.sql
+```
 
 
